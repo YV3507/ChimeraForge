@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import pytest
 from omegaconf import OmegaConf
+
+# 禁止导入时生成 __pycache__（尤其 third_party/LF-VSN submodule 内的 .pyc
+# 会污染其 git 状态；配合 .gitmodules 的 ignore=dirty 双保险）
+sys.dont_write_bytecode = True
 
 CONFIG = Path(__file__).resolve().parents[1] / "configs" / "default.yaml"
 

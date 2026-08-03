@@ -106,6 +106,16 @@ third_party/LF-VSN   # git submodule（CVPR 2023 官方实现）
 tests/
 ```
 
+## 许可证
+
+本项目 `chimeraforge` 包本体以 **MIT License** 发布（见 [LICENSE](LICENSE)）。
+第三方组件（LF-VSN 等）的许可证状态与使用边界见 [NOTICE.md](NOTICE.md)：
+
+- **LF-VSN 及其预训练权重无开源许可证（保留所有权利）**，以 git submodule 引用、
+  仅限研究用途；公开分发或商用前请联系作者授权；
+- `dwt`/`iwt` 为标准 Haar 小波独立实现，已验证与官方推理逐位一致；
+- 其余 pip 依赖均为宽松许可证（BSD/MIT/Apache-2.0）。
+
 ## 里程碑状态
 
 | 里程碑 | 内容 | 状态 |

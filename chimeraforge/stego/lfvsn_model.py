@@ -2,7 +2,8 @@
 
 兼容性处理：
 - `basicsr` 缺失时注入占位模块（源码 import 了但推理路径不使用的符号）；
-- DWT/IWT 使用本地实现（官方 common.py 的 IWT 硬编码 `.cuda()`，CPU 上会崩溃）；
+- DWT/IWT 为本地独立实现（标准 Haar 小波算法；官方 common.py 的 IWT
+  硬编码 `.cuda()` 在 CPU 上会崩溃，且官方仓库无开源许可证）；
 - 直接构建 `VSN`（跳过官方 Model_VSN 的 DataParallel/训练逻辑），逐 GOP 推理以控制显存。
 
 用法（由 lfvsn.py 后端调用）：
@@ -87,33 +88,38 @@ def load_lfvsn(weight_path: str | Path, device: str = "auto") -> torch.nn.Module
 
 
 def dwt(x: torch.Tensor) -> torch.Tensor:
-    """2D Haar DWT（与官方 common.py 逐位一致，device 无关）。"""
-    x01 = x[:, :, 0::2, :] / 2
-    x02 = x[:, :, 1::2, :] / 2
-    x1 = x01[:, :, :, 0::2]
-    x2 = x02[:, :, :, 0::2]
-    x3 = x01[:, :, :, 1::2]
-    x4 = x02[:, :, :, 1::2]
-    ll = x1 + x2 + x3 + x4
-    hl = -x1 - x2 + x3 + x4
-    lh = -x1 + x2 - x3 + x4
-    hh = x1 - x2 - x3 + x4
+    """2D Haar 小波分解，输出按 (LL, HL, LH, HH) 顺序沿通道拼接。
+
+    独立实现：Haar 小波为公开标准算法，此实现按奇偶行/列拆分 + 子带线性
+    组合，保持与 LF-VSN 官方推理相同的 ÷2 归一化与子带顺序（可直接加载
+    其预训练权重），但不复制官方代码。
+    """
+    even = x[:, :, 0::2, :] / 2  # 偶数行
+    odd = x[:, :, 1::2, :] / 2  # 奇数行
+    ll = even[:, :, :, 0::2] + odd[:, :, :, 0::2] + even[:, :, :, 1::2] + odd[:, :, :, 1::2]
+    hl = -even[:, :, :, 0::2] - odd[:, :, :, 0::2] + even[:, :, :, 1::2] + odd[:, :, :, 1::2]
+    lh = -even[:, :, :, 0::2] + odd[:, :, :, 0::2] - even[:, :, :, 1::2] + odd[:, :, :, 1::2]
+    hh = even[:, :, :, 0::2] - odd[:, :, :, 0::2] - even[:, :, :, 1::2] + odd[:, :, :, 1::2]
     return torch.cat((ll, hl, lh, hh), 1)
 
 
 def iwt(x: torch.Tensor) -> torch.Tensor:
-    """2D Haar IWT（官方 IWT 的 device 无关版，去除硬编码 .cuda()）。"""
+    """2D Haar 小波重建（DWT 的逆变换），子带顺序与 dwt 一致。
+
+    独立实现：每个 2×2 位置由 (LL, HL, LH, HH) 四个子带线性重建，
+    device/dtype 与输入一致（官方实现硬编码 .cuda()，CPU 上不可用）。
+    """
     b, c, h, w = x.shape
     oc = c // 4
-    x1 = x[:, 0:oc, :, :] / 2
-    x2 = x[:, oc : 2 * oc, :, :] / 2
-    x3 = x[:, 2 * oc : 3 * oc, :, :] / 2
-    x4 = x[:, 3 * oc : 4 * oc, :, :] / 2
-    out = torch.zeros(b, oc, h * 2, w * 2, device=x.device, dtype=x.dtype)
-    out[:, :, 0::2, 0::2] = x1 - x2 - x3 + x4
-    out[:, :, 1::2, 0::2] = x1 - x2 + x3 - x4
-    out[:, :, 0::2, 1::2] = x1 + x2 - x3 - x4
-    out[:, :, 1::2, 1::2] = x1 + x2 + x3 + x4
+    ll = x[:, 0:oc, :, :] / 2
+    hl = x[:, oc : 2 * oc, :, :] / 2
+    lh = x[:, 2 * oc : 3 * oc, :, :] / 2
+    hh = x[:, 3 * oc : 4 * oc, :, :] / 2
+    out = torch.empty(b, oc, h * 2, w * 2, device=x.device, dtype=x.dtype)
+    out[:, :, 0::2, 0::2] = ll - hl - lh + hh
+    out[:, :, 1::2, 0::2] = ll - hl + lh - hh
+    out[:, :, 0::2, 1::2] = ll + hl - lh - hh
+    out[:, :, 1::2, 1::2] = ll + hl + lh + hh
     return out
 
 

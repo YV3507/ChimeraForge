@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "chimeraforge"
 version = "0.1.0"
 description = "Model-as-information: hide secrets as a neural network embedded in video"
+license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

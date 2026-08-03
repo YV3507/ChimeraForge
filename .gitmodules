@@ -1,3 +1,4 @@
 [submodule "third_party/LF-VSN"]
 	path = third_party/LF-VSN
 	url = https://github.com/MC-E/LF-VSN
+	ignore = dirty

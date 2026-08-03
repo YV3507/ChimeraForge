@@ -33,6 +33,20 @@ def test_dwt_channel_split():
     assert y.shape == (1, 36, 16, 16)
 
 
+def test_dwt_matches_official():
+    """本地 dwt 与 LF-VSN 官方 dwt_init 逐位一致（官方 IWT 硬编码 .cuda()，仅比对 DWT）。"""
+    import sys
+    from pathlib import Path
+
+    repo = Path(__file__).resolve().parents[1] / "third_party" / "LF-VSN" / "code"
+    if str(repo) not in sys.path:
+        sys.path.insert(0, str(repo))
+    from models.modules.common import dwt_init  # noqa: E402
+
+    x = torch.rand(1, 9, 32, 32)
+    assert torch.equal(lm.dwt(x), dwt_init(x))
+
+
 def test_hide_reveal_shapes(net):
     h = w = 64
     host = torch.rand(3, 3, h, w)
