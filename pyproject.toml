@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chimeraforge"
+version = "0.1.0"
+description = "Model-as-information: hide secrets as a neural network embedded in video"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy",
+    "torch>=2.0",
+    "omegaconf",
+]
+
+[project.optional-dependencies]
+lfvsn = ["gdown", "opencv-python", "scikit-image"]
+ecc = ["reedsolo"]
+dev = ["pytest"]
+
+[project.scripts]
+chimeraforge = "chimeraforge.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["chimeraforge*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

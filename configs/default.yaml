@@ -1,0 +1,30 @@
+# ChimeraForge 默认配置（M1 MVP：int8 QAT + LF-VSN 视频隐写）
+# 生产环境请通过 CHIMERAFORGE_MASTER_KEY 环境变量或 --key 传入主密钥
+master_key: "dev-master-key-do-not-use-in-prod"
+
+inr:
+  hidden_dim: 256        # 隐层宽度
+  num_layers: 4          # 隐层层数
+  block_size: 256        # 每个索引输出的字节数
+  pos_freqs: 64          # 位置编码频率数
+  epochs: 3000           # 训练轮数（小内容很快收敛）
+  qat_epochs: 800        # int8 量化感知微调轮数（0 = 关闭 QAT）
+  lr: 1.0e-3
+  device: auto           # auto | cpu | cuda
+
+compress:
+  bits: 8                # 权重量化位宽：8 → int8（需 QAT 无损）；16 → int16 PTQ
+  entropy: zlib          # 熵编码器
+
+stego:
+  backend: stub          # stub | lfvsn
+  lfvsn:
+    weight_dir: "third_party/LF-VSN/pretrained"
+    mode: 1              # 单视频隐藏模式（1~7）
+    redundancy: 4        # 秘密帧比特冗余度（抗 LF-VSN 有损重建）
+    frame_size: 256      # 无载体时合成封面分辨率
+    device: auto
+
+ecc:
+  enabled: false         # Reed-Solomon 纠错（需 reedsolo；启用时同时保护媒体层）
+  nsym: 16

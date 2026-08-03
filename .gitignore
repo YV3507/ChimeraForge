@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.benchmarks/
+.venv/
+venv/
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 运行产物
+artifacts/
+.coverage
+*.pt
+*.bin
+*.cfb
+
+# 预训练权重（体积大，不入库）
+third_party/LF-VSN/pretrained/
+weights/
