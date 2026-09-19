@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *.egg-info/
 .benchmarks/
+.pytest_cache/
+.pytest_tmp/
+.tmpdir/
 .venv/
 venv/
 dist/
@@ -12,6 +15,10 @@ build/
 .idea/
 .vscode/
 *.swp
+
+# 系统文件
+desktop.ini
+Thumbs.db
 
 # 运行产物
 artifacts/

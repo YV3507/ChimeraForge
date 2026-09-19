@@ -36,7 +36,7 @@ ChimeraForge 是一个 **模型即信息（Model-as-information）** 隐写框�
 
 ```bash
 # 1. 克隆并初始化 LF-VSN submodule
-git clone --recurse-submodules https://github.com/your/chimeraforge
+git clone --recurse-submodules https://github.com/YV3507/ChimeraForge.git
 cd chimeraforge
 git submodule update --init third_party/LF-VSN
 
@@ -83,7 +83,7 @@ ecc:      # Reed-Solomon 纠错开关与符号数
 ## 测试
 
 ```bash
-python -m pytest -q        # 73 项：单元 + 五阶段 roundtrip + QAT 无损 + LF-VSN 错误路径
+python -m pytest -q        # 83 项：单元 + 五阶段 roundtrip + QAT 无损 + LF-VSN 错误路径
 ```
 
 QAT 链路保证字节级无损：余弦退火微调 + 训练结束将权重显式拉回 int8 格点，
@@ -121,11 +121,14 @@ tests/
 | 里程碑 | 内容 | 状态 |
 |---|---|---|
 | M0 工程骨架 | repo 结构、LF-VSN submodule、CLI、roundtrip 冒烟 | ✅ 完成 |
-| M1 MVP 全流程 | 文本/小图 → INR → int8 QAT → LF-VSN 嵌入 → 提取 → 重建 | 🚧 代码完成（权重后补，待 720p 端到端验收） |
+| M1 MVP 全流程 | 文本/小图 → INR → int8 QAT → LF-VSN 嵌入 → 提取 → 重建 | 🚧 代码与测试完成（83 项全绿）；**阻塞于 LF-VSN 预训练权重**——权重需自行下载、未随仓库分发，真实后端端到端尚未验收（当前默认 `stub` 后端冒烟通过） |
 | M2 内容升级 | 短视频作为秘密；载体 720p | 待办 |
 | M3 研究课题 | 高熵数据表示、抗压缩鲁棒性、多秘密多接收者 | 待办 |
 
-验收标准：种子模型 < 2MB、重建 SHA-256 与原文一致、720p 载体端到端可跑。
+验收标准：种子模型 < 2MB（int8 实测 291KB ✅）、重建 SHA-256 与原文一致（stub 后端 ✅）、720p 载体端到端可跑（⏳ 待权重就绪）。
+
+> **为什么要自己下权重**：LF-VSN 官方仓库与预训练权重均未附带开源许可证（保留所有权利），
+> 因此本项目以 git submodule 引用、不分发权重，详见 [NOTICE.md](NOTICE.md)。
 
 ## 致谢
 
